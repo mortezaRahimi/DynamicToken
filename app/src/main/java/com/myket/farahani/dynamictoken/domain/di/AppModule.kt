@@ -1,5 +1,7 @@
 package com.myket.farahani.dynamictoken.domain.di
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.myket.farahani.dynamictoken.data.remote.ApiConstants.BASE_URL
 import com.myket.farahani.dynamictoken.data.remote.ApiService
 import com.myket.farahani.dynamictoken.domain.repository.Repository
@@ -36,10 +38,18 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideMapApiService(client: OkHttpClient): ApiService {
+    fun provideGson(): Gson {
+        return GsonBuilder()
+            .setLenient()
+            .create()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMapApiService(client: OkHttpClient , gson: Gson): ApiService {
         val retrofit = Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .client(client)
             .build()
         return retrofit.create(ApiService::class.java)

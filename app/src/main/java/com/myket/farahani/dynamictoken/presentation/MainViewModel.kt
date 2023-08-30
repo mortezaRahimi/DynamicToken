@@ -13,6 +13,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.max
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -37,8 +38,6 @@ class MainViewModel @Inject constructor(
                     state = state.copy(
                         downloading = true
                     )
-
-
                 }
 
             }
@@ -50,7 +49,7 @@ class MainViewModel @Inject constructor(
             }
 
             is AppEvent.OnCalcDataAdded -> {
-                getToken(calculateMaxProfit(event.points as ArrayList<Int>))
+                getToken(maxProfit(event.points, 0, event.points.size - 1))
             }
 
             is AppEvent.OnTokenAdded -> {
@@ -82,32 +81,27 @@ class MainViewModel @Inject constructor(
     }
 
     private fun getToken(maxProfit: Int) {
-        state = state.copy(
-            token = "FiaSIsImR0IjozOTMzMzQ4MjYsImgiOiIz"
-        )
-        onEvent(AppEvent.OnTokenAdded("FiaSIsImR0IjozOTMzMzQ4MjYsImgiOiIz"))
-
-//        viewModelScope.launch {
-//            useCase.getToken(maxProfit.toString())
-//                .onSuccess {
-//                    state = state.copy(
-//                        token = it
-//                    )
-//                    onEvent(AppEvent.OnTokenAdded(it))
-//                    _uiEvent.send(
-//                        UiEvent.ShowSnackbar(
-//                            UiText.DynamicString(it)
-//                        )
-//                    )
-//                }
-//                .onFailure {
-//                    _uiEvent.send(
-//                        UiEvent.ShowSnackbar(
-//                            UiText.DynamicString(it.message.toString())
-//                        )
-//                    )
-//                }
-//        }
+        viewModelScope.launch {
+            useCase.getToken(maxProfit.toString())
+                .onSuccess {
+                    state = state.copy(
+                        token = it
+                    )
+                    onEvent(AppEvent.OnTokenAdded(it))
+                    _uiEvent.send(
+                        UiEvent.ShowSnackbar(
+                            UiText.DynamicString(it)
+                        )
+                    )
+                }
+                .onFailure {
+                    _uiEvent.send(
+                        UiEvent.ShowSnackbar(
+                            UiText.DynamicString(it.message.toString())
+                        )
+                    )
+                }
+        }
     }
 
     private fun getCalculationData() {
@@ -129,19 +123,22 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun calculateMaxProfit(points: ArrayList<Int>): Int {
-        var tempList = points
-        var maxList = arrayListOf<Int>()
+    private fun maxProfit(price: ArrayList<Int>, start: Int, end: Int): Int {
+        if (end <= start) return 0
+        var profit = 0
+        for (i in start until end) {
 
-        for (i in tempList) {
-            for (j in tempList.subList(1, tempList.size)) {
-                if (i < j && tempList.indexOf(j) > tempList.indexOf(i)) {
-                    maxList.add(j - i)
+            for (j in i + 1..end) {
+
+                if (price[j] > price[i]) {
+                    val currProfit = (price[j] - price[i] + maxProfit(price, start, i - 1)
+                            + maxProfit(price, j + 1, end))
+
+                    profit = max(profit, currProfit)
                 }
             }
         }
-
-        return maxList.max()
+        return profit
     }
 
 

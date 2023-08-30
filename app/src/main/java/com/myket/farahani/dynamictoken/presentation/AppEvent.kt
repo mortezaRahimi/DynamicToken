@@ -6,7 +6,7 @@ sealed class AppEvent {
 
     data object OnAppDownloaded : AppEvent()
 
-    data class OnCalcDataAdded(val points:List<Int>) : AppEvent()
+    data class OnCalcDataAdded(val points: ArrayList<Int>) : AppEvent()
 
-    data class OnTokenAdded(val token:String):AppEvent()
+    data class OnTokenAdded(val token: String) : AppEvent()
 }
