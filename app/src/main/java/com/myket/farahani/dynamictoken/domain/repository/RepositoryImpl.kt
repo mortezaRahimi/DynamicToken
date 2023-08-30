@@ -1,12 +1,14 @@
 package com.myket.farahani.dynamictoken.domain.repository
 
 import com.myket.farahani.dynamictoken.data.remote.ApiService
+import com.myket.farahani.dynamictoken.data.remote.FileDownloadApi
 import com.myket.farahani.dynamictoken.data.remote.model.AppResponse
-import com.myket.farahani.dynamictoken.data.remote.model.TokenResponse
+import okhttp3.ResponseBody
 import java.lang.Exception
 
 class RepositoryImpl(
-    private val api: ApiService
+    private val api: ApiService,
+    private val downloadApi: FileDownloadApi
 ) : Repository {
 
     override suspend fun getCalcData(): Result<List<Int>> {
@@ -30,6 +32,15 @@ class RepositoryImpl(
     override suspend fun getAppData(token: String): Result<AppResponse> {
         return try {
             val data = api.getAppData(token)
+            Result.success(data)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun downloadFile(url: String): Result<ResponseBody> {
+        return try {
+            val data = downloadApi.downloadFile(url)
             Result.success(data)
         } catch (e: Exception) {
             Result.failure(e)

@@ -6,9 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
@@ -17,7 +15,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.myket.farahani.dynamictoken.presentation.components.MainScreen
+import com.myket.farahani.dynamictoken.presentation.screen.MainScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @ExperimentalPermissionsApi

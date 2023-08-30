@@ -1,5 +1,6 @@
 package com.myket.farahani.dynamictoken.presentation
 
+import android.os.Environment
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,9 +10,12 @@ import com.myket.farahani.dynamictoken.domain.use_case.DynamicTokenUseCase
 import com.myket.farahani.dynamictoken.utils.UiEvent
 import com.myket.farahani.dynamictoken.utils.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import okhttp3.ResponseBody
+import java.io.File
 import javax.inject.Inject
 import kotlin.math.max
 
@@ -21,6 +25,9 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     var state by mutableStateOf(AppState())
+        private set
+    var downloadState by mutableStateOf<FileDownloadScreenState>(FileDownloadScreenState.Idle)
+        private set
 
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
@@ -55,8 +62,6 @@ class MainViewModel @Inject constructor(
             is AppEvent.OnTokenAdded -> {
                 getAppData(event.token)
             }
-
-            else -> {}
         }
     }
 
@@ -135,6 +140,71 @@ class MainViewModel @Inject constructor(
             }
         }
         return profit
+    }
+
+    fun downloadFile() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val timestamp = System.currentTimeMillis()
+            useCase.downloadFile(state.downloadLink).onSuccess {
+                it.saveFile(timestamp.toString())
+                    .collect { mdownloadState ->
+                        downloadState = when (mdownloadState) {
+                            is DownloadState.Downloading -> {
+                                FileDownloadScreenState.Downloading(progress = mdownloadState.progress)
+                            }
+                            is DownloadState.Failed -> {
+                                FileDownloadScreenState.Failed(error = mdownloadState.error)
+                            }
+                            DownloadState.Finished -> {
+                                FileDownloadScreenState.Downloaded
+                            }
+                        }
+                    }
+            }
+        }
+    }
+
+    fun onIdleRequested() {
+        downloadState =   FileDownloadScreenState.Idle
+    }
+
+    private sealed class DownloadState {
+        data class Downloading(val progress: Int) : DownloadState()
+        object Finished : DownloadState()
+        data class Failed(val error: Throwable? = null) : DownloadState()
+    }
+
+
+    private fun ResponseBody.saveFile(filePostfix: String): Flow<DownloadState> {
+        return flow {
+            emit(DownloadState.Downloading(0))
+            val downloadFolder =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val destinationFile = File(downloadFolder.absolutePath, "file_${filePostfix}.apk")
+
+            try {
+                byteStream().use { inputStream ->
+                    destinationFile.outputStream().use { outputStream ->
+                        val totalBytes = contentLength()
+                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                        var progressBytes = 0L
+
+                        var bytes = inputStream.read(buffer)
+                        while (bytes >= 0) {
+                            outputStream.write(buffer, 0, bytes)
+                            progressBytes += bytes
+                            bytes = inputStream.read(buffer)
+                            emit(DownloadState.Downloading(((progressBytes * 100) / totalBytes).toInt()))
+                        }
+                    }
+                }
+                emit(DownloadState.Finished)
+            } catch (e: Exception) {
+                emit(DownloadState.Failed(e))
+            }
+        }
+            .flowOn(Dispatchers.IO)
+            .distinctUntilChanged()
     }
 
 

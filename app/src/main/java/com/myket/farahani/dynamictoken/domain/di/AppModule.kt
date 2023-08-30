@@ -4,12 +4,10 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.myket.farahani.dynamictoken.data.remote.ApiConstants.BASE_URL
 import com.myket.farahani.dynamictoken.data.remote.ApiService
+import com.myket.farahani.dynamictoken.data.remote.FileDownloadApi
 import com.myket.farahani.dynamictoken.domain.repository.Repository
 import com.myket.farahani.dynamictoken.domain.repository.RepositoryImpl
-import com.myket.farahani.dynamictoken.domain.use_case.DynamicTokenUseCase
-import com.myket.farahani.dynamictoken.domain.use_case.GetAppData
-import com.myket.farahani.dynamictoken.domain.use_case.GetCalcData
-import com.myket.farahani.dynamictoken.domain.use_case.GetToken
+import com.myket.farahani.dynamictoken.domain.use_case.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -46,7 +44,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideMapApiService(client: OkHttpClient , gson: Gson): ApiService {
+    fun provideApiService(client: OkHttpClient, gson: Gson): ApiService {
         val retrofit = Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create(gson))
@@ -57,10 +55,22 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideMapRepository(
-        api: ApiService
+    fun provideFileDownloadApiService(client: OkHttpClient, gson: Gson): FileDownloadApi {
+        val retrofit = Retrofit.Builder()
+            .baseUrl("http://localhost/")
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .client(client)
+            .build()
+        return retrofit.create(FileDownloadApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRepository(
+        api: ApiService,
+        downloadApi: FileDownloadApi
     ): Repository {
-        return RepositoryImpl(api)
+        return RepositoryImpl(api, downloadApi)
     }
 
     @Provides
@@ -71,7 +81,8 @@ object AppModule {
         return DynamicTokenUseCase(
             getCalcData = GetCalcData(repository),
             getToken = GetToken(repository),
-            getAppData = GetAppData(repository)
+            getAppData = GetAppData(repository),
+            downloadFile = DownloadFile(repository)
         )
     }
 }
