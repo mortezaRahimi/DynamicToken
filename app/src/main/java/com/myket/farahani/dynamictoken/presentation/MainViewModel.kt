@@ -85,14 +85,10 @@ class MainViewModel @Inject constructor(
             useCase.getToken(maxProfit.toString())
                 .onSuccess {
                     state = state.copy(
-                        token = it
+                        token = it,
+                        tokenAdded = true
                     )
                     onEvent(AppEvent.OnTokenAdded(it))
-                    _uiEvent.send(
-                        UiEvent.ShowSnackbar(
-                            UiText.DynamicString(it)
-                        )
-                    )
                 }
                 .onFailure {
                     _uiEvent.send(
