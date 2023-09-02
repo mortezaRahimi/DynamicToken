@@ -13,7 +13,7 @@ import java.io.File
 
 fun ResponseBody.saveFile(filePostfix: String): Flow<DownloadState> {
     return flow {
-        emit(DownloadState.Downloading(0))
+        emit(DownloadState.Downloading(0f))
         val downloadFolder =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val destinationFile = File(downloadFolder.absolutePath, "file_${filePostfix}.apk")
@@ -31,7 +31,8 @@ fun ResponseBody.saveFile(filePostfix: String): Flow<DownloadState> {
                         outputStream.write(buffer, 0, bytes)
                         progressBytes += bytes
                         bytes = inputStream.read(buffer)
-                        emit(DownloadState.Downloading(((progressBytes * 100) / totalBytes).toInt()))
+                        println("Progress bytes: ${((progressBytes * 100).toFloat() / totalBytes)}")
+                        emit(DownloadState.Downloading(((progressBytes * 100).toFloat() / totalBytes)))
                     }
                 }
             }

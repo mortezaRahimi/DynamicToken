@@ -12,7 +12,7 @@ sealed class AppEvent {
     data object OnDownloadButtonTap : AppEvent()
 
     object Idle : AppEvent()
-    data class Downloading(val progress: Int) : AppEvent()
+    data class Downloading(val progress: Float) : AppEvent()
     data class Failed(val error: Throwable? = null) : AppEvent()
     data class Downloaded(val destination:String) : AppEvent()
 

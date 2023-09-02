@@ -7,6 +7,6 @@ data class AppState(
     val downloadLink: String = "",
     val calcData: ArrayList<Int> = arrayListOf(),
     val downloading: Boolean = false,
-    val downloadProgress: Int = 0,
+    val downloadProgress: Float = 0f,
     val tokenAdded: Boolean = false,
 )

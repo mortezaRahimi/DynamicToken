@@ -41,7 +41,7 @@ class MainViewModel @Inject constructor(
                 if (state.tokenAdded) {
                     state = state.copy(
                         downloading = true,
-                        downloadProgress = 0
+                        downloadProgress = 0f
                     )
                     downloadFile()
                 }
@@ -56,7 +56,7 @@ class MainViewModel @Inject constructor(
                 getAppData(event.token)
             }
 
-            is AppEvent.Downloaded -> {event
+            is AppEvent.Downloaded -> {
                 state = state.copy(
                     downloading = false
                 )

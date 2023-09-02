@@ -15,7 +15,7 @@ fun DownloadFilesWithProgressLayout(progress: Float) {
 
     println("Downloaded ${(progress*100).toInt()}%")
     Text(
-        text = "Downloaded ${progress *100}%",
+        text = "Downloaded ${(progress*100).toInt()}%",
         style = MaterialTheme.typography.h6,
     )
     Spacer(modifier = Modifier.height(8.dp))
