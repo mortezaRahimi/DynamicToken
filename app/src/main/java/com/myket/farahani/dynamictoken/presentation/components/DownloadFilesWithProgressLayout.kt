@@ -6,19 +6,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
- fun DownloadFilesWithProgressLayout(progress: Int) {
+fun DownloadFilesWithProgressLayout(progress: Float) {
+
+    println("Downloaded ${(progress*100).toInt()}%")
     Text(
-        text = "Downloaded $progress%",
+        text = "Downloaded ${progress *100}%",
         style = MaterialTheme.typography.h6,
     )
     Spacer(modifier = Modifier.height(8.dp))
     LinearProgressIndicator(
-        progress = progress.toFloat() / 100f,
+        progress = progress,
         modifier = Modifier.fillMaxWidth(),
     )
 }

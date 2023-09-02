@@ -82,8 +82,7 @@ class DownloadController(
     }
 
     fun enqueueDownload() {
-        var destination =
-            context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/"
+        var destination = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/"
         destination += FILE_NAME
         val uri = Uri.parse("$FILE_BASE_PATH$destination")
         val file = File(destination)

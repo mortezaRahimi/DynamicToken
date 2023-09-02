@@ -6,7 +6,6 @@ import retrofit2.http.Streaming
 import retrofit2.http.Url
 
 interface FileDownloadApi {
-    @Streaming
     @GET
     suspend fun downloadFile(@Url url:String): ResponseBody
 }

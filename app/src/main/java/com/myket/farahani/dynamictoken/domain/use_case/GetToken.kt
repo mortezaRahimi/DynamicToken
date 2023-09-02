@@ -1,6 +1,5 @@
 package com.myket.farahani.dynamictoken.domain.use_case
 
-import com.myket.farahani.dynamictoken.data.remote.model.TokenResponse
 import com.myket.farahani.dynamictoken.domain.repository.Repository
 
 class GetToken(

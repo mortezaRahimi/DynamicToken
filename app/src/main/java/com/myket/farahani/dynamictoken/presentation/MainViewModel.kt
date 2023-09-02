@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.myket.farahani.dynamictoken.domain.use_case.DynamicTokenUseCase
 import com.myket.farahani.dynamictoken.utils.UiEvent
 import com.myket.farahani.dynamictoken.utils.UiText
+import com.myket.farahani.dynamictoken.utils.ext.saveFile
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -25,13 +26,9 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     var state by mutableStateOf(AppState())
-        private set
-    var downloadState by mutableStateOf<FileDownloadScreenState>(FileDownloadScreenState.Idle)
-        private set
 
     private val _uiEvent = Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
-
 
     init {
         getCalculationData()
@@ -43,17 +40,13 @@ class MainViewModel @Inject constructor(
             is AppEvent.OnDownloadButtonTap -> {
                 if (state.tokenAdded) {
                     state = state.copy(
-                        downloading = true
+                        downloading = true,
+                        downloadProgress = 0
                     )
+                    downloadFile()
                 }
-
             }
 
-            is AppEvent.OnAppDownloaded -> {
-                state = state.copy(
-                    downloading = false
-                )
-            }
 
             is AppEvent.OnCalcDataAdded -> {
                 getToken(maxProfit(event.points, 0, event.points.size - 1))
@@ -62,6 +55,26 @@ class MainViewModel @Inject constructor(
             is AppEvent.OnTokenAdded -> {
                 getAppData(event.token)
             }
+
+            is AppEvent.Downloaded -> {event
+                state = state.copy(
+                    downloading = false
+                )
+                viewModelScope.launch {
+                    _uiEvent.send(UiEvent.ShowInstallView(event.destination))
+                }
+
+            }
+            is AppEvent.Downloading -> {
+                state = state.copy(downloadProgress = event.progress)
+            }
+            is AppEvent.Failed -> {
+                viewModelScope.launch {
+                    _uiEvent.send(UiEvent.ShowSnackbar(UiText.DynamicString("Error download")))
+                }
+            }
+
+            else -> {}
         }
     }
 
@@ -128,13 +141,10 @@ class MainViewModel @Inject constructor(
         if (end <= start) return 0
         var profit = 0
         for (i in start until end) {
-
             for (j in i + 1..end) {
-
                 if (price[j] > price[i]) {
                     val currProfit = (price[j] - price[i] + maxProfit(price, start, i - 1)
                             + maxProfit(price, j + 1, end))
-
                     profit = max(profit, currProfit)
                 }
             }
@@ -142,69 +152,27 @@ class MainViewModel @Inject constructor(
         return profit
     }
 
-    fun downloadFile() {
+    private fun downloadFile() {
         viewModelScope.launch(Dispatchers.IO) {
             val timestamp = System.currentTimeMillis()
             useCase.downloadFile(state.downloadLink).onSuccess {
+
                 it.saveFile(timestamp.toString())
                     .collect { mdownloadState ->
-                        downloadState = when (mdownloadState) {
+                        when (mdownloadState) {
                             is DownloadState.Downloading -> {
-                                FileDownloadScreenState.Downloading(progress = mdownloadState.progress)
+                                onEvent(AppEvent.Downloading(progress = mdownloadState.progress))
                             }
                             is DownloadState.Failed -> {
-                                FileDownloadScreenState.Failed(error = mdownloadState.error)
+                                onEvent(AppEvent.Failed(error = mdownloadState.error))
                             }
-                            DownloadState.Finished -> {
-                                FileDownloadScreenState.Downloaded
+                            is DownloadState.Finished -> {
+                                onEvent(AppEvent.Downloaded(destination = mdownloadState.destionation))
                             }
                         }
                     }
             }
         }
-    }
-
-    fun onIdleRequested() {
-        downloadState =   FileDownloadScreenState.Idle
-    }
-
-    private sealed class DownloadState {
-        data class Downloading(val progress: Int) : DownloadState()
-        object Finished : DownloadState()
-        data class Failed(val error: Throwable? = null) : DownloadState()
-    }
-
-
-    private fun ResponseBody.saveFile(filePostfix: String): Flow<DownloadState> {
-        return flow {
-            emit(DownloadState.Downloading(0))
-            val downloadFolder =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val destinationFile = File(downloadFolder.absolutePath, "file_${filePostfix}.apk")
-
-            try {
-                byteStream().use { inputStream ->
-                    destinationFile.outputStream().use { outputStream ->
-                        val totalBytes = contentLength()
-                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                        var progressBytes = 0L
-
-                        var bytes = inputStream.read(buffer)
-                        while (bytes >= 0) {
-                            outputStream.write(buffer, 0, bytes)
-                            progressBytes += bytes
-                            bytes = inputStream.read(buffer)
-                            emit(DownloadState.Downloading(((progressBytes * 100) / totalBytes).toInt()))
-                        }
-                    }
-                }
-                emit(DownloadState.Finished)
-            } catch (e: Exception) {
-                emit(DownloadState.Failed(e))
-            }
-        }
-            .flowOn(Dispatchers.IO)
-            .distinctUntilChanged()
     }
 
 
