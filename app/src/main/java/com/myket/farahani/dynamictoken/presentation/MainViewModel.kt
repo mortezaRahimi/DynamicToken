@@ -47,7 +47,6 @@ class MainViewModel @Inject constructor(
                 }
             }
 
-
             is AppEvent.OnCalcDataAdded -> {
                 getToken(maxProfit(event.points, 0, event.points.size - 1))
             }
@@ -63,11 +62,12 @@ class MainViewModel @Inject constructor(
                 viewModelScope.launch {
                     _uiEvent.send(UiEvent.ShowInstallView(event.destination))
                 }
-
             }
+
             is AppEvent.Downloading -> {
                 state = state.copy(downloadProgress = event.progress)
             }
+
             is AppEvent.Failed -> {
                 viewModelScope.launch {
                     _uiEvent.send(UiEvent.ShowSnackbar(UiText.DynamicString("Error download")))

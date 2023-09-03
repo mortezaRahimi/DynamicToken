@@ -31,7 +31,7 @@ fun ResponseBody.saveFile(filePostfix: String): Flow<DownloadState> {
                         outputStream.write(buffer, 0, bytes)
                         progressBytes += bytes
                         bytes = inputStream.read(buffer)
-                        println("Progress bytes: ${((progressBytes * 100).toFloat() / totalBytes)}")
+//                        println("Progress bytes: ${((progressBytes * 100).toFloat() / totalBytes)}")
                         emit(DownloadState.Downloading(((progressBytes * 100).toFloat() / totalBytes)))
                     }
                 }

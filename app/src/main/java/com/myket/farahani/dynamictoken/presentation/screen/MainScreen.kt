@@ -13,8 +13,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.myket.farahani.dynamictoken.presentation.AppEvent
 import com.myket.farahani.dynamictoken.presentation.MainViewModel
 import com.myket.farahani.dynamictoken.presentation.components.FileDownloadLayout
-import com.myket.farahani.dynamictoken.utils.DownloadController
 import com.myket.farahani.dynamictoken.utils.UiEvent
+import com.myket.farahani.dynamictoken.utils.ext.Utils.openNewVersion
 import java.io.File
 
 @Composable
@@ -46,26 +46,4 @@ fun MainScreen(
         onStartDownloadClicked = {viewModel.onEvent(AppEvent.OnDownloadButtonTap)},
     )
 
-}
-fun openNewVersion(location: String ,context:Context)  {
-    val intent = Intent(Intent.ACTION_VIEW)
-    intent.setDataAndType(
-        getUriFromFile(location ,context),
-        "application/vnd.android.package-archive"
-    )
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    context.startActivity(intent)
-}
-
-fun getUriFromFile(filePath: String , context: Context): Uri {
-    return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-        Uri.fromFile(File(filePath))
-    } else {
-        FileProvider.getUriForFile(
-            context,
-            context.packageName + ".provider",
-            File(filePath)
-        )
-    }
 }

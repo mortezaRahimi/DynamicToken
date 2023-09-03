@@ -63,7 +63,8 @@ fun FileDownloadLayout(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        DownloadFilesWithProgressLayout(progress = animatedProgress)
+        if (viewModel.state.downloading)
+            DownloadFilesWithProgressLayout(progress = animatedProgress)
 
     }
 }
