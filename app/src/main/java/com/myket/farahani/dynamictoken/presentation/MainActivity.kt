@@ -15,7 +15,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.myket.farahani.dynamictoken.presentation.screen.MainScreen
+import com.myket.farahani.dynamictoken.presentation.blur.blurp.BlurScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @ExperimentalPermissionsApi
@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
                     key1 = lifecycleOwner,
                     effect = {
                         val observer = LifecycleEventObserver { _, event ->
-                            if(event == Lifecycle.Event.ON_START) {
+                            if (event == Lifecycle.Event.ON_START) {
                                 permissionsState.launchMultiplePermissionRequest()
                             }
                         }
@@ -56,7 +56,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     scaffoldState = scaffoldState
                 ) {
-                    MainScreen(scaffoldState = scaffoldState)
+//                    MainScreen(scaffoldState = scaffoldState)
+
+                    BlurScreen()
                 }
             }
         }

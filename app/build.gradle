@@ -93,7 +93,12 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:$navigation_version")
     implementation("androidx.hilt:hilt-navigation-compose:$hilt_navigation_compose_version")
 
-    implementation("io.coil-kt:coil-compose:2.0.0-rc01")
-
     implementation "com.google.accompanist:accompanist-permissions:0.21.1-beta"
+
+    implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
+    implementation "androidx.work:work-runtime-ktx:$versions_work"
+    implementation "com.github.bumptech.glide:glide:4.12.0"
+
+    implementation "io.coil-kt:coil-compose:2.4.0"
+    implementation "androidx.compose.runtime:runtime-livedata:1.4.3"
 }
